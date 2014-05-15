@@ -2,7 +2,7 @@ Softmax Neural Network implementation in C++ vectorized using the Armadillo C++ 
 
 Gives P(y=j|x;t) where t is the theta parameter
 
-Implementation taken from here:
+Implementation from this document:
 http://ufldl.stanford.edu/wiki/index.php/Softmax_Regression
 
 Softmax is prefered over binary classification for mutually exclusive classes and is also prefered for use in autoencoders.
