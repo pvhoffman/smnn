@@ -39,7 +39,13 @@ public:
     virtual double train(const arma::mat& X, const arma::mat& y);
 
     // predict returns a probability vector for each case
-    virtual arma::mat predict(const arma::mat& X);
+    virtual arma::mat predict(const arma::mat& X) const;
+
+    // save the network parameters to disk
+    virtual void save(const char* fileName);
+
+    // load the network parameters from disk
+    virtual void load(const char* fileName);
 
 }; // end class SMNeuarlNet
 

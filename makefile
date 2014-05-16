@@ -2,7 +2,7 @@
 PROJECT = test.exe
 MAIN_SRC_FILE = examples
 MAIN_SRC_PATH = .
-OBJFILES = $(MAIN_SRC_PATH)\$(MAIN_SRC_FILE).obj $(MAIN_SRC_PATH)\stdafx.obj $(MAIN_SRC_PATH)\smneuralnet.obj
+OBJFILES = $(MAIN_SRC_PATH)\$(MAIN_SRC_FILE).obj $(MAIN_SRC_PATH)\stdafx.obj $(MAIN_SRC_PATH)\smneuralnet.obj $(MAIN_SRC_PATH)\higgs.obj
 DEBUG = /Od /Oy- /D _DEBUG
 # ---------------------------------------------------------
 USER_DEFINES = /D WIN32

@@ -28,7 +28,7 @@ SMNeuralNet::~SMNeuralNet()
 {
 }
 //---------------------------------------------------------------------------------------
-arma::mat SMNeuralNet::predict(const arma::mat& X)
+arma::mat SMNeuralNet::predict(const arma::mat& X) const
 {
    std::vector<arma::mat> as;
 
@@ -64,8 +64,6 @@ arma::mat SMNeuralNet::predict(const arma::mat& X)
     }
 
     return as.back();
-
-
 }
 //---------------------------------------------------------------------------------------
 double SMNeuralNet::train(const arma::mat& X, const arma::mat& y)
@@ -234,6 +232,64 @@ arma::mat SMNeuralNet::activate(const arma::mat& z) const
     const arma::mat c = 1.0 + b;
     const arma::mat d = 1.0 / c;
     return d;
+}
+//---------------------------------------------------------------------------------------
+void SMNeuralNet::save(const char* fileName) 
+{
+
+    for(unsigned int i = 0, j = _thetas.size(); i < j; i++){
+        char suffix[] = {'-', ('0' + i), '\x0'};
+        std::string outs(fileName);
+
+        outs.append(suffix);
+        if(!_thetas[i].save(outs.c_str(), arma::raw_ascii)){
+                std::string what("Cannot save network parameter to ");
+                what.append(outs);
+                throw SMException(what.c_str());
+        }
+    }
+}
+//---------------------------------------------------------------------------------------
+void SMNeuralNet::load(const char* fileName) 
+{
+    WIN32_FIND_DATA find_data;
+
+    char drive[_MAX_DRIVE];
+    char path[_MAX_DIR];
+    char name[_MAX_FNAME];
+    char extn[_MAX_EXT];
+
+    _splitpath(fileName, drive, path, name, extn);
+
+    std::string ins(fileName);
+    ins.append("-?");
+
+    HANDLE find_handle = ::FindFirstFile(ins.c_str(), &find_data);
+
+    if(!find_handle || INVALID_HANDLE_VALUE == find_handle) {
+        std::string what("Cannot find ");
+        what.append(fileName);
+        throw SMException(what.c_str());
+    }
+
+
+    do {
+        ins.assign(drive);
+        ins.append(path);
+        ins.append(find_data.cFileName);
+
+        const unsigned int n = strlen(find_data.cFileName) - 1;
+        const unsigned int i = find_data.cFileName[n] - '0';
+        if(!_thetas[i].load(ins.c_str(), arma::raw_ascii)){
+                std::string what("Cannot load parameter from ");
+                what.append(ins);
+
+                throw SMException(what.c_str());
+        }
+    } while(::FindNextFile(find_handle, &find_data));
+
+    ::FindClose(find_handle);
+
 }
 //---------------------------------------------------------------------------------------
 // static functions and variables
