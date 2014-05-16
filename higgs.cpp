@@ -38,13 +38,13 @@ void train(const char* training_samples_filename, const char* labels_filename)
     ind.push_back(X.n_cols);
 
     // hidden layer 1
-    ind.push_back(7);
+    ind.push_back(4);
 
     // hidden layer 2
-    ind.push_back(7);
+    ind.push_back(4);
 
     // hidden layer 3
-    ind.push_back(7);
+    ind.push_back(4);
 
     // outputlayer
     ind.push_back(2);
@@ -99,13 +99,13 @@ void predict(const char* data_filename, const char* output_filename)
     ind.push_back(X.n_cols);
 
     // hidden layer 1
-    ind.push_back(7);
+    ind.push_back(4);
 
     // hidden layer 2
-    ind.push_back(7);
+    ind.push_back(4);
 
     // hidden layer 3
-    ind.push_back(7);
+    ind.push_back(4);
 
     // outputlayer
     ind.push_back(2);
