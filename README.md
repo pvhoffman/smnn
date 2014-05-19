@@ -11,7 +11,11 @@ Hidden units will activate on logistical regression.
 
 The predict member function returns the probability for all cases, e.g. P(y=j|x;t) for all possible 'quantized' y
 
+
+
 Usage example:
+
+
     smnn::layerdesc_t ind;
     ind.push_back(2);
     ind.push_back(2);
@@ -42,7 +46,7 @@ Usage example:
     X = arma::zeros(1, 2);
     unsigned a = ( rand() & 1 ) ? 1 : 0;
     unsigned b = ( rand() & 1 ) ? 1 : 0;
-    unsigned c = ( a | b ) ? 1 : 0;
+    unsigned c = ( a ^ b ) ? 1 : 0;
 
     X(0, 0) = a;
     X(0, 1) = b;

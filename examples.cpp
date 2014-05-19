@@ -18,7 +18,7 @@ void higgs_signal_prediction()
 
 int main (int argc, char const* argv[])
 {
-    higgs_signal_prediction();
+    //higgs_signal_prediction();
 #if 0
     smnn::layerdesc_t ind;
     ind.push_back(2);
@@ -50,7 +50,7 @@ int main (int argc, char const* argv[])
     X = arma::zeros(1, 2);
     unsigned a = ( rand() & 1 ) ? 1 : 0;
     unsigned b = ( rand() & 1 ) ? 1 : 0;
-    unsigned c = ( a | b ) ? 1 : 0;
+    unsigned c = ( a ^ b ) ? 1 : 0;
 
     X(0, 0) = a;
     X(0, 1) = b;
