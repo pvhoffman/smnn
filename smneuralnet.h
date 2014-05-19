@@ -25,7 +25,6 @@ protected:
 
     arma::mat activate(const arma::mat& z) const;
 
-    //
 public:
     // ctor
     SMNeuralNet(const layerdesc_t& layerdesc, const double& lambda );
@@ -46,6 +45,12 @@ public:
 
     // load the network parameters from disk
     virtual void load(const char* fileName);
+
+    // normalize a column or columns
+    static arma::mat SMNeuralNet::normalize(const arma::mat& cx);
+
+    // standardize a column or columns
+    static arma::mat SMNeuralNet::standardize(const arma::mat& cx);
 
 }; // end class SMNeuarlNet
 

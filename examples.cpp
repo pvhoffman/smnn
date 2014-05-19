@@ -18,7 +18,7 @@ void higgs_signal_prediction()
 
 int main (int argc, char const* argv[])
 {
-    //higgs_signal_prediction();
+    higgs_signal_prediction();
 #if 0
     smnn::layerdesc_t ind;
     ind.push_back(2);

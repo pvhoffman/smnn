@@ -20,7 +20,6 @@ SMNeuralNet::SMNeuralNet(const layerdesc_t& layerdesc, const double& lambda ) : 
 
         // theta will be in (b)x(a)
         _thetas.push_back( arma::randu<arma::mat>(b, a) ); 
-        //_thetas.push_back( arma::zeros(b,a) ); 
     }
 }
 //---------------------------------------------------------------------------------------
@@ -290,6 +289,50 @@ void SMNeuralNet::load(const char* fileName)
 
     ::FindClose(find_handle);
 
+}
+//---------------------------------------------------------------------------------------
+arma::mat SMNeuralNet::standardize(const arma::mat& cx)
+{
+    const arma::mat m = arma::mean(cx);
+    const double md = m(0,0);
+    //std::cout << "Mean: " << md << std::endl;
+
+
+    const arma::mat s = arma::stddev(cx);
+    const double ms = s(0,0);
+    //std::cout << "stddev: " << ms << std::endl;
+
+    const arma::mat res = (cx - md) / ms;
+
+    //std::cout << "In:" << std::endl << cx.rows(0,10) << std::endl;
+    //std::cout << "Out:" << std::endl << res.rows(0,10) << std::endl;
+
+    //exit(0);
+    //std::cout << "res: " << res << std::endl;
+
+    return res;
+}
+arma::mat SMNeuralNet::normalize(const arma::mat& cx)
+{
+    /* mx = Max of X(<all rows>,column)*/
+    /* mn = Min of X(<all rows>,column)*/
+    /* X' = (X - mn) / (mx / mn) */
+
+    const double a = 0.0;
+    const double b = 200.0;
+
+    const double mx = cx.max();
+    const double mn = cx.min();
+    const double mz = mx - mn;
+
+    const arma::mat t1 = (cx - mn);
+    const arma::mat t2 = t1 * (b - a);
+    const arma::mat t3 = t2 / mz;
+    const arma::mat t4 = t3 + a;
+
+    //arma::mat res = ((cx - mn) / mz);
+
+    return t4;
 }
 //---------------------------------------------------------------------------------------
 // static functions and variables
