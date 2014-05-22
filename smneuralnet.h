@@ -52,6 +52,9 @@ public:
     // standardize a column or columns
     static arma::mat SMNeuralNet::standardize(const arma::mat& cx);
 
+    // mean normalize a column or columns
+    static arma::mat SMNeuralNet::mean_normalize(const arma::mat& cx);
+
 }; // end class SMNeuarlNet
 
 class SMException : public std::runtime_error

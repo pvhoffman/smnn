@@ -11,28 +11,22 @@ namespace smnn { namespace higgs {
 
 //---------------------------------------------------------------------------------------
 // static variables and function declerations
-//static const double lambda = 0.00185;
-static const double lambda = 0.3785;
+static const double lambda = 0.00185;
+//static const double lambda = 0.3785;
 
-static const unsigned int hidden_layer_count_i = 3;
-static const unsigned int hidden_layer_units_i = 13;
+static const unsigned int highest_poly_order = 3;
 
-static const unsigned int hidden_layer_count_0 = 10;
-static const unsigned int hidden_layer_units_0 = 11;
+static const unsigned int hidden_layer_count_0 = 2;
+static const unsigned int hidden_layer_units_0 = 8;
 
-static const unsigned int hidden_layer_count_1 = 10;
-static const unsigned int hidden_layer_units_1 = 7;
+static const unsigned int hidden_layer_count_1 = 3;
+static const unsigned int hidden_layer_units_1 = 3;
 
-static const unsigned int hidden_layer_count_2 = 10;
-static const unsigned int hidden_layer_units_2 = 5;
-
-static const unsigned int hidden_layer_count_3 = 10;
-static const unsigned int hidden_layer_units_3 = 3;
-
-static unsigned int get_hidden_unit_size(const unsigned int& n);
 static const char* higgs_filename = "c:\\temp\\higgs\\higgs-params";//hidden layer 3
 
 static unsigned int training_iterations = 2000;
+
+static arma::mat polynomialize(const arma::mat& X, const unsigned int& toorder);
 //---------------------------------------------------------------------------------------
 void train(const char* training_samples_filename, const char* labels_filename)
 {
@@ -43,34 +37,24 @@ void train(const char* training_samples_filename, const char* labels_filename)
     std::cout << "Loading training samples." << std::endl;
     X.load(training_samples_filename/*, arma::raw_ascii*/);
 
-#if 0
-    for(unsigned int i = 0, j = X.n_cols; i < j; i++){
-        const arma::mat cx = X.col(i);
-        const double mn = cx.min();//X.col(i).min();
-        const arma::mat ex = smnn::SMNeuralNet::normalize(cx);
-        X.col(i) = ex;
-        if(mn < -998.0 && mn > -1000.0){
-            std::cout << "Normalizing column " << (i+1) << std::endl;
-            const arma::mat ex = smnn::SMNeuralNet::normalize(cx);
-            X.col(i) = ex;
-        } else {
-            std::cout << "Standardizing column " << (i+1) << std::endl;
-            const arma::mat ex = smnn::SMNeuralNet::standardize(cx);
-            X.col(i) = ex;
-        }
-    }
-#endif
-
     std::cout << "Loading samples labels." << std::endl;
     y.load(labels_filename/*, arma::raw_ascii*/);
 
 
-    // input layer
-    ind.push_back(X.n_cols);
-
-    for(unsigned int i = 0; i < hidden_layer_count_i; i++){
-        ind.push_back(hidden_layer_units_i);
+    std::cout << "Mean-normalizing test samples." << std::endl;
+    for(unsigned int i = 0; i < X.n_cols; i++){
+        const arma::mat cx = X.col(i);
+        const arma::mat cy = smnn::SMNeuralNet::normalize(cx);
+        X.col(i) = cy;
     }
+
+    std::cout << "Polynomializing test samples" << std::endl;
+    arma::mat Xp = polynomialize(X, highest_poly_order);
+
+    std::cout << "Input layer contains " << Xp.n_cols << " units." << std::endl;
+
+    // input layer
+    ind.push_back(Xp.n_cols);
 
     for(unsigned int i = 0; i < hidden_layer_count_0; i++){
         ind.push_back(hidden_layer_units_0);
@@ -80,13 +64,6 @@ void train(const char* training_samples_filename, const char* labels_filename)
         ind.push_back(hidden_layer_units_1);
     }
 
-    for(unsigned int i = 0; i < hidden_layer_count_2; i++){
-        ind.push_back(hidden_layer_units_2);
-    }
-
-    for(unsigned int i = 0; i < hidden_layer_count_3; i++){
-        ind.push_back(hidden_layer_units_3);
-    }
    // outputlayer
     ind.push_back(2);
 
@@ -99,7 +76,7 @@ void train(const char* training_samples_filename, const char* labels_filename)
     unsigned int mcount = 0;
 
     for(unsigned int i = 0; i < training_iterations; i++){
-        double J = nn.train(X.t(), y);
+        double J = nn.train(Xp.t(), y);
 
         std::cout << "Cost at iteration " << (i+1) << " is " << J << std::endl;
 
@@ -133,30 +110,19 @@ void predict(const char* data_filename, const char* output_filename)
     X.load(data_filename/*, arma::raw_ascii*/);
 
 
-    for(unsigned int i = 0, j = X.n_cols; i < j; i++){
+    std::cout << "Mean-normalizing test samples." << std::endl;
+    for(unsigned int i = 0; i < X.n_cols; i++){
         const arma::mat cx = X.col(i);
-        const double mn = cx.min();//X.col(i).min();
-        const arma::mat ex = smnn::SMNeuralNet::normalize(cx);
-        X.col(i) = ex;
-#if 0
-        if(mn < -998.0 && mn > -1000.0){
-            std::cout << "Normalizing column " << (i+1) << std::endl;
-            const arma::mat ex = smnn::SMNeuralNet::normalize(cx);
-            X.col(i) = ex;
-        } else {
-            std::cout << "Standardizing column " << (i+1) << std::endl;
-            const arma::mat ex = smnn::SMNeuralNet::standardize(cx);
-            X.col(i) = ex;
-        }
-#endif
+        const arma::mat cy = smnn::SMNeuralNet::normalize(cx);
+        X.col(i) = cy;
     }
 
-    // input layer
-    ind.push_back(X.n_cols);
+    std::cout << "Polynomializing test samples" << std::endl;
+    arma::mat Xp = polynomialize(X, highest_poly_order);
 
-    for(unsigned int i = 0; i < hidden_layer_count_i; i++){
-        ind.push_back(hidden_layer_units_i);
-    }
+    std::cout << "Input layer contains " << Xp.n_cols << " units." << std::endl;
+   // input layer
+    ind.push_back(Xp.n_cols);
 
     for(unsigned int i = 0; i < hidden_layer_count_0; i++){
         ind.push_back(hidden_layer_units_0);
@@ -164,13 +130,6 @@ void predict(const char* data_filename, const char* output_filename)
 
     for(unsigned int i = 0; i < hidden_layer_count_1; i++){
         ind.push_back(hidden_layer_units_1);
-    }
-
-    for(unsigned int i = 0; i < hidden_layer_count_2; i++){
-        ind.push_back(hidden_layer_units_2);
-    }
-    for(unsigned int i = 0; i < hidden_layer_count_3; i++){
-        ind.push_back(hidden_layer_units_3);
     }
 
     // outputlayer
@@ -185,7 +144,7 @@ void predict(const char* data_filename, const char* output_filename)
 
     //predict
     std::cout << "Predicting results." << std::endl;
-    const arma::mat ps = nn.predict(X.t());
+    const arma::mat ps = nn.predict(Xp.t());
 
     FILE* fpout = fopen(output_filename, "wt");
 
@@ -216,15 +175,18 @@ void predict(const char* data_filename, const char* output_filename)
     std::cout << "Prediction complete." << std::endl;
 }
 //---------------------------------------------------------------------------------------
-static unsigned int get_hidden_unit_size(const unsigned int& n)
+static arma::mat polynomialize(const arma::mat& X, const unsigned int& toorder)
 {
-    return 3;
-/*
-    const double features = n;
-    const double count    = n * (1.0 / 3.7);
-    const unsigned res    = count;
-    return res;
-*/
+        if(!toorder) return X;
+
+        arma::mat Xp = arma::zeros(X.n_rows, X.n_cols * toorder);
+
+        for(unsigned int i = 0, k = 0 ; i < X.n_cols; i++){
+            for(unsigned int j = 0; j < toorder; j++){
+                Xp.col(k++) = arma::pow(X.col(i),(j + 1));
+            }
+        }
+        return Xp;
 }
 //---------------------------------------------------------------------------------------
 }} //namespace smnn , namespace higgs 

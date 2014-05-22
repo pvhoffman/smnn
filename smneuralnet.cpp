@@ -291,27 +291,33 @@ void SMNeuralNet::load(const char* fileName)
 
 }
 //---------------------------------------------------------------------------------------
+arma::mat SMNeuralNet::mean_normalize(const arma::mat& cx)
+{
+    const arma::mat m = arma::mean(cx);
+    const double md = m(0,0);
+
+    const double mx = cx.max();
+    const double mn = cx.min();
+
+    const arma::mat res = (cx - md) / (mx - mn);
+
+    return res;
+}
+//---------------------------------------------------------------------------------------
 arma::mat SMNeuralNet::standardize(const arma::mat& cx)
 {
     const arma::mat m = arma::mean(cx);
     const double md = m(0,0);
-    //std::cout << "Mean: " << md << std::endl;
 
 
     const arma::mat s = arma::stddev(cx);
     const double ms = s(0,0);
-    //std::cout << "stddev: " << ms << std::endl;
 
     const arma::mat res = (cx - md) / ms;
 
-    //std::cout << "In:" << std::endl << cx.rows(0,10) << std::endl;
-    //std::cout << "Out:" << std::endl << res.rows(0,10) << std::endl;
-
-    //exit(0);
-    //std::cout << "res: " << res << std::endl;
-
     return res;
 }
+//---------------------------------------------------------------------------------------
 arma::mat SMNeuralNet::normalize(const arma::mat& cx)
 {
     /* mx = Max of X(<all rows>,column)*/
