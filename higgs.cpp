@@ -11,22 +11,27 @@ namespace smnn { namespace higgs {
 
 //---------------------------------------------------------------------------------------
 // static variables and function declerations
-static const double lambda = 0.00185;
-//static const double lambda = 0.3785;
+static const double lambda = 0.00000001;
+//static const double lambda = 0.3;
 
 static const unsigned int highest_poly_order = 3;
 
-static const unsigned int hidden_layer_count_0 = 2;
-static const unsigned int hidden_layer_units_0 = 8;
+static const unsigned int hidden_layer_count_0 = 4;
+static const unsigned int hidden_layer_units_0 = 9;
 
-static const unsigned int hidden_layer_count_1 = 3;
-static const unsigned int hidden_layer_units_1 = 3;
+static const unsigned int hidden_layer_count_1 = 4;
+static const unsigned int hidden_layer_units_1 = 5;
+
+static const unsigned int hidden_layer_count_2 = 4;
+static const unsigned int hidden_layer_units_2 = 3;
 
 static const char* higgs_filename = "c:\\temp\\higgs\\higgs-params";//hidden layer 3
 
 static unsigned int training_iterations = 2000;
 
 static arma::mat polynomialize(const arma::mat& X, const unsigned int& toorder);
+
+static void correct_missing(arma::mat& X);
 //---------------------------------------------------------------------------------------
 void train(const char* training_samples_filename, const char* labels_filename)
 {
@@ -37,24 +42,30 @@ void train(const char* training_samples_filename, const char* labels_filename)
     std::cout << "Loading training samples." << std::endl;
     X.load(training_samples_filename/*, arma::raw_ascii*/);
 
+    std::cout << "Correcting missing value terms" << std::endl;
+    correct_missing(X);
+
     std::cout << "Loading samples labels." << std::endl;
     y.load(labels_filename/*, arma::raw_ascii*/);
-
 
     std::cout << "Mean-normalizing test samples." << std::endl;
     for(unsigned int i = 0; i < X.n_cols; i++){
         const arma::mat cx = X.col(i);
-        const arma::mat cy = smnn::SMNeuralNet::normalize(cx);
+        const arma::mat cy = smnn::SMNeuralNet::mean_normalize(cx);
         X.col(i) = cy;
     }
 
-    std::cout << "Polynomializing test samples" << std::endl;
-    arma::mat Xp = polynomialize(X, highest_poly_order);
+    // 
+    //std::cout << "Saving modified samples to disk." << std::endl;
+    //X.save("c:\\temp\\X.dat", arma::raw_ascii);
 
-    std::cout << "Input layer contains " << Xp.n_cols << " units." << std::endl;
+    //std::cout << "Polynomializing test samples" << std::endl;
+    //arma::mat Xp = polynomialize(X, highest_poly_order);
+
+    std::cout << "Input layer contains " << X.n_cols << " units." << std::endl;
 
     // input layer
-    ind.push_back(Xp.n_cols);
+    ind.push_back(X.n_cols);
 
     for(unsigned int i = 0; i < hidden_layer_count_0; i++){
         ind.push_back(hidden_layer_units_0);
@@ -62,6 +73,10 @@ void train(const char* training_samples_filename, const char* labels_filename)
 
     for(unsigned int i = 0; i < hidden_layer_count_1; i++){
         ind.push_back(hidden_layer_units_1);
+    }
+
+    for(unsigned int i = 0; i < hidden_layer_count_2; i++){
+        ind.push_back(hidden_layer_units_2);
     }
 
    // outputlayer
@@ -76,7 +91,7 @@ void train(const char* training_samples_filename, const char* labels_filename)
     unsigned int mcount = 0;
 
     for(unsigned int i = 0; i < training_iterations; i++){
-        double J = nn.train(Xp.t(), y);
+        double J = nn.train(X.t(), y);
 
         std::cout << "Cost at iteration " << (i+1) << " is " << J << std::endl;
 
@@ -91,7 +106,6 @@ void train(const char* training_samples_filename, const char* labels_filename)
         lastJ = J;
     }
 
-    std::cout << "Training network...."  << std::endl;
     
     std::cout << "Saving network parameters."  << std::endl;
     nn.save(higgs_filename);
@@ -109,20 +123,22 @@ void predict(const char* data_filename, const char* output_filename)
     std::cout << "Loading test samples." << std::endl;
     X.load(data_filename/*, arma::raw_ascii*/);
 
+    std::cout << "Correcting missing value terms" << std::endl;
+    correct_missing(X);
 
     std::cout << "Mean-normalizing test samples." << std::endl;
     for(unsigned int i = 0; i < X.n_cols; i++){
         const arma::mat cx = X.col(i);
-        const arma::mat cy = smnn::SMNeuralNet::normalize(cx);
+        const arma::mat cy = smnn::SMNeuralNet::mean_normalize(cx);
         X.col(i) = cy;
     }
 
-    std::cout << "Polynomializing test samples" << std::endl;
-    arma::mat Xp = polynomialize(X, highest_poly_order);
+    //std::cout << "Polynomializing test samples" << std::endl;
+    //arma::mat Xp = polynomialize(X, highest_poly_order);
 
-    std::cout << "Input layer contains " << Xp.n_cols << " units." << std::endl;
+    //std::cout << "Input layer contains " << Xp.n_cols << " units." << std::endl;
    // input layer
-    ind.push_back(Xp.n_cols);
+    ind.push_back(X.n_cols);
 
     for(unsigned int i = 0; i < hidden_layer_count_0; i++){
         ind.push_back(hidden_layer_units_0);
@@ -144,7 +160,7 @@ void predict(const char* data_filename, const char* output_filename)
 
     //predict
     std::cout << "Predicting results." << std::endl;
-    const arma::mat ps = nn.predict(Xp.t());
+    const arma::mat ps = nn.predict(X.t());
 
     FILE* fpout = fopen(output_filename, "wt");
 
@@ -187,6 +203,21 @@ static arma::mat polynomialize(const arma::mat& X, const unsigned int& toorder)
             }
         }
         return Xp;
+}
+//---------------------------------------------------------------------------------------
+static void correct_missing(arma::mat& X)
+{
+        const int missing_term = -999;
+        const double corrected_term = -1.0;
+
+        for(unsigned int i = 0; i < X.n_rows; i++){
+                for(unsigned int j = 0; j < X.n_cols; j++){
+                        int t = X(i,j);
+                        if( t == missing_term ){
+                                X(i,j) = corrected_term;
+                        }
+                }
+        }
 }
 //---------------------------------------------------------------------------------------
 }} //namespace smnn , namespace higgs 

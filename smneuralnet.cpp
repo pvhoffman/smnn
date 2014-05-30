@@ -296,10 +296,12 @@ arma::mat SMNeuralNet::mean_normalize(const arma::mat& cx)
     const arma::mat m = arma::mean(cx);
     const double md = m(0,0);
 
-    const double mx = cx.max();
-    const double mn = cx.min();
+    //const double mx = cx.max();
+    //const double mn = cx.min();
+    //const double nn = (mx - mn) - 1.0;
+    const double nn = cx.n_rows - 1;
 
-    const arma::mat res = (cx - md) / (mx - mn);
+    const arma::mat res = (cx - md) / nn;
 
     return res;
 }
